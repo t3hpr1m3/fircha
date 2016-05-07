@@ -1,0 +1,3 @@
+[submodule "roles/Stouts.rabbitmq"]
+	path = roles/Stouts.rabbitmq
+	url = git://github.com/Stouts/Stouts.rabbitmq
