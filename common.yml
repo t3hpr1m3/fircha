@@ -1,0 +1,17 @@
+---
+- hosts: all:!ntp_servers
+  become: yes
+  become_user: root
+  tasks:
+    - name: set the hostname
+      hostname:
+        name: "{{ hostname | default(inventory_hostname) }}"
+    - name: make the hostname persistent
+      copy:
+        content: "{{ hostname | default(inventory_hostname) }}"
+        dest: /etc/hostname
+        owner: root
+        group: root
+        mode: 0644
+  roles:
+    - ntp

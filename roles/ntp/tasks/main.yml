@@ -1,0 +1,11 @@
+---
+- name: ensure ntp is installed
+  apt:
+    name: ntp
+    state: installed
+
+- name: ensure ntp is configured
+  template:
+    src: etc/ntp.conf.j2
+    dest: /etc/ntp.conf
+  notify: restart ntpd
