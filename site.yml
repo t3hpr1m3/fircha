@@ -1,4 +1,4 @@
 - include: common.yml
 # - include: router.yml
-# - include: controller.yml
+- include: controller.yml
 # - include: compute_nodes.yml

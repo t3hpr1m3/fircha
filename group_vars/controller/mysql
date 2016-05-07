@@ -1,0 +1,12 @@
+---
+rabbitmq_openstack_username: openstack
+
+mysql_keystone_database: keystone
+mysql_glance_database: glance
+mysql_neutron_database: neutron
+mysql_nova_database: nova
+
+mysql_keystone_username: keystone
+mysql_glance_username: glance
+mysql_neutron_username: neutron
+mysql_nova_username: nova
