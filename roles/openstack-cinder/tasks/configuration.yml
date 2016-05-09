@@ -1,0 +1,94 @@
+- name: ensure cinder is configured
+  ini_file:
+    dest: /etc/cinder/cinder.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: database
+      option: connection
+      value: "{{ openstack_cinder_database_url }}"
+    - section: DEFAULT
+      option: auth_strategy
+      value: keystone
+    - section: DEFAULT
+      option: enabled_backends
+      value: lvm
+    - section: DEFAULT
+      option: glance_api_servers
+      value: "http://{{ openstack_glance_hostname }}:9292"
+    - section: DEFAULT
+      option: rpc_backend
+      value: rabbit
+    - section: DEFAULT
+      option: my_ip
+      value: "{{ openstack_cinder_management_ip }}"
+    - section: keystone_authtoken
+      option: auth_uri
+      value: "http://{{ openstack_keystone_hostname }}:5000"
+    - section: keystone_authtoken
+      option: auth_url
+      value: "http://{{ openstack_keystone_hostname }}:35357"
+    - section: keystone_authtoken
+      option: memcached_servers
+      value: "localhost:11211"
+    - section: keystone_authtoken
+      option: auth_type
+      value: password
+    - section: keystone_authtoken
+      option: project_domain_name
+      value: default
+    - section: keystone_authtoken
+      option: user_domain_name
+      value: default
+    - section: keystone_authtoken
+      option: project_name
+      value: service
+    - section: keystone_authtoken
+      option: username
+      value: "{{ openstack_cinder_username }}"
+    - section: keystone_authtoken
+      option: password
+      value: "{{ openstack_cinder_password }}"
+    - section: lvm
+      option: volume_driver
+      value: cinder.volume.drivers.lvm.LVMVolumeDriver
+    - section: lvm
+      option: volume_group
+      value: cinder-volumes
+    - section: lvm
+      option: iscsi_protocol
+      value: iscsi
+    - section: lvm
+      option: iscsi_helper
+      value: tgtadm
+    - section: oslo_concurrency
+      option: lock_path
+      value: /var/lib/cinder/tmp
+    - section: oslo_messaging_rabbit
+      option: rabbit_host
+      value: "{{ rabbitmq_hostname }}"
+    - section: oslo_messaging_rabbit
+      option: rabbit_userid
+      value: "{{ rabbitmq_username }}"
+    - section: oslo_messaging_rabbit
+      option: rabbit_password
+      value: "{{ rabbitmq_password }}"
+  notify:
+    - restart cinder-scheduler
+    - restart cinder-api
+    - restart cinder-volume
+    - sync cinder database
+
+- name: ensure nova-api is configured for cinder
+  ini_file:
+    dest: /etc/nova/nova.conf
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+  with_items:
+    - section: cinder
+      option: os_region_name
+      value: RegionOne
+  notify:
+    - restart nova-api

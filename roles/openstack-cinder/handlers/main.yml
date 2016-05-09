@@ -1,0 +1,31 @@
+---
+- name: restart tgt
+  service:
+    name: tgt
+    state: restarted
+
+- name: sync cinder database
+  command: cinder-manage db sync
+  become: yes
+  become_user: cinder
+
+- name: restart cinder-api
+  service:
+    name: cinder-api
+    state: restarted
+
+- name: restart cinder-scheduler
+  service:
+    name: cinder-scheduler
+    state: restarted
+
+- name: restart cinder-volume
+  service:
+    name: cinder-volume
+    state: restarted
+
+- name: restart nova-api
+  service:
+    name: nova-api
+    state: restarted
+

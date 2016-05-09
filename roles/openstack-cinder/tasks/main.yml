@@ -1,0 +1,33 @@
+---
+- name: ensure lvm is properly configured
+  lineinfile:
+    dest: /etc/lvm/lvm.conf
+    regexp: "^([\\ ]*)filter\\ =\\ .*$"
+    line: '\1filter = [{{ openstack_cinder_volume_targets | lvm_filter }}, "r/.*/"]'
+    backrefs: yes
+  notify:
+    - restart tgt
+
+- name: ensure the cinder volume group exists
+  lvg:
+    vg: cinder-volumes
+    pvs: "{{ openstack_cinder_volume_members }}"
+    state: present
+
+- include: user.yml
+- include: user_role.yml
+- include: service.yml
+- include: endpoints.yml
+
+- name: ensure the cinder packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - cinder-api
+    - cinder-scheduler
+    - cinder-volume
+
+- include: configuration.yml
+
+- meta: flush_handlers

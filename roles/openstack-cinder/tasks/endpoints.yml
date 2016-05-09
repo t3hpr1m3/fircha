@@ -1,0 +1,18 @@
+---
+- name: ensure the cinder endpoints exist in keystone
+  keystone_endpoint:
+    publicurl: "http://{{ openstack_cinder_hostname }}:8776/v1/%(tenant_id)s"
+    internalurl: "http://{{ openstack_cinder_hostname }}:8776/v1/%(tenant_id)s"
+    adminurl: "http://{{ openstack_cinder_hostname }}:8776/v1/%(tenant_id)s"
+    service_name: "{{ openstack_cinder_service_name }}"
+    token: "{{ openstack_keystone_admin_token }}"
+    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"
+
+- name: ensure the cinderv2 endpoints exist in keystone
+  keystone_endpoint:
+    publicurl: "http://{{ openstack_cinder_hostname }}:8776/v2/%(tenant_id)s"
+    internalurl: "http://{{ openstack_cinder_hostname }}:8776/v2/%(tenant_id)s"
+    adminurl: "http://{{ openstack_cinder_hostname }}:8776/v2/%(tenant_id)s"
+    service_name: "{{ openstack_cinderv2_service_name }}"
+    token: "{{ openstack_keystone_admin_token }}"
+    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"

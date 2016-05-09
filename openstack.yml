@@ -31,3 +31,12 @@
       openstack_neutron_ext_interface: "{{ interface }}"
     - role: openstack-horizon
       openstack_keystone_hostname: "{{ groups['controller'][0] }}"
+    - role: openstack-cinder
+      openstack_cinder_database_url: "mysql+pymysql://{{ mysql_cinder_username }}:{{ mysql_cinder_password }}@localhost/{{ mysql_cinder_database }}"
+      openstack_cinder_hostname: "{{ inventory_hostname }}"
+      openstack_cinder_management_ip: "{{ ipv4_address }}"
+      openstack_keystone_hostname: "{{ groups['controller'][0] }}"
+      rabbitmq_hostname: "{{ groups['controller'][0] }}"
+      rabbitmq_username: "{{ rabbitmq_openstack_username }}"
+      rabbitmq_password: "{{ rabbitmq_openstack_password }}"
+      openstack_glance_hostname: "{{ groups['controller'][0] }}"

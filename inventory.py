@@ -14,7 +14,9 @@ DEFAULT_INVENTORY = {
 		"hulk": {
 			"vars": {
 				"interface": "br-ex",
-				"ipv4_address": "192.168.0.100"
+				"ipv4_address": "192.168.0.100",
+				"openstack_cinder_volume_members": ["/dev/sdb", "/dev/sdc"],
+				"openstack_cinder_volume_targets": ["/dev/sda", "/dev/sdb", "/dev/sdc"]
 			}
 		}
 	},

@@ -1,0 +1,20 @@
+---
+openstack_cinder_database_url: sqlite:////var/lib/cinder/cinder.db
+openstack_cinder_hostname: localhost
+openstack_cinder_username: cinder
+openstack_cinder_password: iamnotverysecret
+openstack_cinder_service_name: cinder
+openstack_cinderv2_service_name: cinderv2
+openstack_cinder_service_description: OpenStack Block Storage
+openstack_cinder_management_ip: 127.0.0.1
+openstack_keystone_hostname: localhost
+openstack_keystone_admin_token: iamnotverysecret
+rabbitmq_hostname: localhost
+rabbitmq_username: openstack
+rabbitmq_password: iamnotverysecret
+openstack_cinder_volume_members:
+  - /dev/sda5
+openstack_cinder_volume_targets:
+  - /dev/sda
+openstack_cinder_filter_string: '"a/sda/", "r/.*/"'
+openstack_glance_hostname: localhost
