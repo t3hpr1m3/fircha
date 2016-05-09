@@ -7,3 +7,6 @@
       openstack_keystone_database_url: "mysql+pymysql://{{ mysql_keystone_username }}:{{ mysql_keystone_password }}@localhost/{{ mysql_keystone_database }}"
       openstack_keystone_hostname: "{{ groups['controller'][0] }}"
       openstack_keystone_memcache_servers: localhost:11211
+    - role: openstack-glance
+      openstack_glance_database_url: "mysql+pymysql://{{ mysql_glance_username }}:{{ mysql_glance_password }}@localhost/{{ mysql_glance_database }}"
+      openstack_glance_hostname: "{{ groups['controller'][0] }}"

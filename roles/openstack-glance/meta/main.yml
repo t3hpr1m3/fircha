@@ -1,0 +1,5 @@
+---
+dependencies:
+  - { role: memcached }
+  - { role: apache2 }
+  - { role: openstack-common }

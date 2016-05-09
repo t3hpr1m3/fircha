@@ -1,0 +1,14 @@
+---
+- include: user.yml
+- include: user_role.yml
+- include: service.yml
+- include: endpoints.yml
+
+- name: ensure the glance packages are installed
+  apt:
+    name: glance
+    state: present
+
+- include: configuration.yml
+
+- meta: flush_handlers

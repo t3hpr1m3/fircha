@@ -1,0 +1,9 @@
+---
+- name: ensure the glance endpoint exists in keystone
+  keystone_endpoint:
+    publicurl: "http://{{ openstack_glance_hostname }}:9292"
+    internalurl: "http://{{ openstack_glance_hostname }}:9292"
+    adminurl: "http://{{ openstack_glance_hostname }}:9292"
+    service_name: "{{ openstack_glance_service_name }}"
+    token: "{{ openstack_keystone_admin_token }}"
+    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"
