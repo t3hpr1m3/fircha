@@ -19,3 +19,13 @@
       rabbitmq_hostname: localhost
       rabbitmq_username: "{{ rabbitmq_openstack_username }}"
       rabbitmq_password: "{{ rabbitmq_openstack_password }}"
+    - role: openstack-neutron
+      openstack_neutron_database_url: "mysql+pymysql://{{ mysql_neutron_username }}:{{ mysql_neutron_password }}@localhost/{{ mysql_neutron_database }}"
+      openstack_neutron_hostname: "{{ inventory_hostname }}"
+      openstack_keystone_hostname: "{{ groups['controller'][0] }}"
+      openstack_nova_hostname: "{{ groups['controller'][0] }}"
+      rabbitmq_hostname: localhost
+      rabbitmq_username: "{{ rabbitmq_openstack_username }}"
+      rabbitmq_password: "{{ rabbitmq_openstack_password }}"
+      openstack_neutron_local_ip: "{{ ipv4_address }}"
+      openstack_neutron_ext_interface: "{{ interface }}"

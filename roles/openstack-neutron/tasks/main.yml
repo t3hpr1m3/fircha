@@ -1,0 +1,22 @@
+---
+- include: user.yml
+- include: user_role.yml
+- include: service.yml
+- include: endpoints.yml
+
+- name: ensure the neutron packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - neutron-server
+    - neutron-plugin-ml2
+    - neutron-linuxbridge-agent
+    - neutron-l3-agent
+    - neutron-dhcp-agent
+    - neutron-metadata-agent
+    - neutron-openvswitch-agent
+
+- include: configuration.yml
+
+- meta: flush_handlers

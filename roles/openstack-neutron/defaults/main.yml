@@ -1,0 +1,9 @@
+---
+openstack_neutron_database_url: sqlite:////var/lib/neutron/neutron.db
+openstack_neutron_service_name: neutron
+openstack_neutron_service_description: OpenStack Networking
+openstack_neutron_username: neutron
+openstack_neutron_password: iamnotverysecret
+openstack_neutron_hostname: localhost
+openstack_keystone_hostname: localhost
+openstack_nova_username: nova

@@ -11,22 +11,22 @@ except ImportError:
 
 DEFAULT_INVENTORY = {
 	"hosts": {
-		"hulk": {
+		"osdev": {
 			"vars": {
 				"interface": "br-ex",
-				"ipv4_address": "192.168.0.100"
+				"ipv4_address": "192.168.0.70"
 			}
 		}
 	},
 	"groups": {
 		"router": {
-			"hosts": ["hulk"]
+			"hosts": ["osdev"]
 		},
 		"controller": {
-			"hosts": ["hulk"]
+			"hosts": ["osdev"]
 		},
 		"compute_nodes": {
-			"hosts": ["hulk"]
+			"hosts": ["osdev"]
 		},
 		"ntp_servers": {
 			"hosts": ["mars"]
