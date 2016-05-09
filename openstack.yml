@@ -29,3 +29,5 @@
       rabbitmq_password: "{{ rabbitmq_openstack_password }}"
       openstack_neutron_local_ip: "{{ ipv4_address }}"
       openstack_neutron_ext_interface: "{{ interface }}"
+    - role: openstack-horizon
+      openstack_keystone_hostname: "{{ groups['controller'][0] }}"
