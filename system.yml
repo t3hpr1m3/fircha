@@ -1,0 +1,34 @@
+---
+- hosts: all:!ntp_servers
+  become: yes
+  become_user: root
+  roles:
+    - role: Stouts.rabbitmq
+    - role: mysql
+      mysql_databases:
+        - "{{ mysql_keystone_database }}"
+        - "{{ mysql_glance_database }}"
+        - "{{ mysql_nova_database }}"
+        - "{{ mysql_neutron_database }}"
+        - "{{ mysql_cinder_database }}"
+      mysql_users:
+        - name: "{{ mysql_keystone_username }}"
+          password: "{{ mysql_keystone_password }}"
+          priv: "{{ mysql_keystone_database }}.*:ALL,GRANT"
+          host: '%'
+        - name: "{{ mysql_glance_username }}"
+          password: "{{ mysql_glance_password }}"
+          priv: "{{ mysql_glance_database }}.*:ALL,GRANT"
+          host: '%'
+        - name: "{{ mysql_nova_username }}"
+          password: "{{ mysql_nova_password }}"
+          priv: "{{ mysql_nova_database }}.*:ALL,GRANT"
+          host: '%'
+        - name: "{{ mysql_neutron_username }}"
+          password: "{{ mysql_neutron_password }}"
+          priv: "{{ mysql_neutron_database }}.*:ALL,GRANT"
+          host: '%'
+        - name: "{{ mysql_cinder_username }}"
+          password: "{{ mysql_cinder_password }}"
+          priv: "{{ mysql_cinder_database }}.*:ALL,GRANT"
+          host: '%'

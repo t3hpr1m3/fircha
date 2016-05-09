@@ -1,0 +1,16 @@
+---
+- name: ensure the ubuntu cloud keyring is installed
+  apt:
+    name: ubuntu-cloud-keyring
+    state: present
+
+- name: ensure the cloudarchive source is configured
+  apt_repository:
+    repo: "{{ cloudarchive_source }}"
+    state: present
+    update_cache: yes
+
+- name: ensure the OpenStack client is installed
+  apt:
+    name: python-openstackclient
+    state: present

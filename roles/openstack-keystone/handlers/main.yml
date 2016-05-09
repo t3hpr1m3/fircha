@@ -1,0 +1,13 @@
+---
+- name: restart apache2
+  service:
+    name: apache2
+    state: restarted
+
+- name: sync keystone database
+  command: keystone-manage db_sync
+  become: yes
+  become_user: keystone
+
+- name: initialize fernet keys
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone

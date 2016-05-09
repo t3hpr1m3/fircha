@@ -1,0 +1,9 @@
+---
+- name: ensure the keystone endpoint exists in keystone
+  keystone_endpoint:
+    publicurl: "http://{{ openstack_keystone_hostname }}:5000/v3"
+    internalurl: "http://{{ openstack_keystone_hostname }}:5000/v3"
+    adminurl: "http://{{ openstack_keystone_hostname }}:35357/v3"
+    service_name: "{{ openstack_keystone_service_name }}"
+    token: "{{ openstack_keystone_admin_token }}"
+    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"

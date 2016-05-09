@@ -1,0 +1,23 @@
+---
+- name: ensure the keystone service cannot start
+  copy:
+    content: manual
+    dest: /etc/init/keystone.override
+
+- name: ensure the keystone package is installed
+  apt:
+    name: keystone
+    state: present
+
+- include: configuration.yml
+- include: apache2.yml
+
+- meta: flush_handlers
+
+- include: services.yml
+- include: endpoints.yml
+- include: domains.yml
+- include: projects.yml
+- include: users.yml
+- include: roles.yml
+- include: user_roles.yml

@@ -1,0 +1,8 @@
+---
+- name: Ensure the memcache packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - memcached
+    - python-memcache
