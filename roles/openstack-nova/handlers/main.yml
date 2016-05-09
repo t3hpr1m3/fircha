@@ -1,0 +1,50 @@
+---
+- name: sync nova database
+  command: nova-manage db sync
+  become: yes
+  become_user: nova
+
+- name: sync nova-api database
+  command: nova-manage api_db sync
+  become: yes
+  become_user: nova
+
+- name: restart nova-api
+  service:
+    name: nova-api
+    state: restarted
+
+- name: restart nova-compute
+  service:
+    name: nova-compute
+    state: restarted
+
+- name: restart glance-registry
+  service:
+    name: glance-registry
+    state: restarted
+
+- name: restart nova-conductor
+  service:
+    name: nova-conductor
+    state: restarted
+
+- name: restart nova-consoleauth
+  service:
+    name: nova-consoleauth
+    state: restarted
+
+- name: restart nova-novncproxy
+  service:
+    name: nova-novncproxy
+    state: restarted
+
+- name: restart glance-registry
+  service:
+    name: glance-registry
+    state: restarted
+
+- name: restart nova-scheduler
+  service:
+    name: nova-scheduler
+    state: restarted

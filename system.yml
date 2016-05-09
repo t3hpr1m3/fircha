@@ -9,6 +9,7 @@
         - "{{ mysql_keystone_database }}"
         - "{{ mysql_glance_database }}"
         - "{{ mysql_nova_database }}"
+        - "{{ mysql_nova_api_database }}"
         - "{{ mysql_neutron_database }}"
         - "{{ mysql_cinder_database }}"
       mysql_users:
@@ -23,6 +24,10 @@
         - name: "{{ mysql_nova_username }}"
           password: "{{ mysql_nova_password }}"
           priv: "{{ mysql_nova_database }}.*:ALL,GRANT"
+          host: '%'
+        - name: "{{ mysql_nova_username }}"
+          password: "{{ mysql_nova_password }}"
+          priv: "{{ mysql_nova_api_database }}.*:ALL,GRANT"
           host: '%'
         - name: "{{ mysql_neutron_username }}"
           password: "{{ mysql_neutron_password }}"

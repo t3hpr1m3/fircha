@@ -18,4 +18,3 @@
     OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
     OS_USERNAME: "keystone"
   when: glance_service.rc != 0
-

@@ -5,6 +5,7 @@ mysql_keystone_database: keystone
 mysql_glance_database: glance
 mysql_neutron_database: neutron
 mysql_nova_database: nova
+mysql_nova_api_database: nova_api
 mysql_cinder_database: cinder
 
 mysql_keystone_username: keystone

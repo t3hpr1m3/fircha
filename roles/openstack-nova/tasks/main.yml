@@ -1,0 +1,21 @@
+---
+- include: user.yml
+- include: user_role.yml
+- include: service.yml
+- include: endpoints.yml
+
+- name: ensure the nova packages are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - nova-api
+    - nova-compute
+    - nova-conductor
+    - nova-consoleauth
+    - nova-novncproxy
+    - nova-scheduler
+
+- include: configuration.yml
+
+- meta: flush_handlers

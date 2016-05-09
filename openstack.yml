@@ -10,3 +10,12 @@
     - role: openstack-glance
       openstack_glance_database_url: "mysql+pymysql://{{ mysql_glance_username }}:{{ mysql_glance_password }}@localhost/{{ mysql_glance_database }}"
       openstack_glance_hostname: "{{ groups['controller'][0] }}"
+    - role: openstack-nova
+      openstack_nova_database_url: "mysql+pymysql://{{ mysql_nova_username }}:{{ mysql_nova_password }}@localhost/{{ mysql_nova_database }}"
+      openstack_nova_api_database_url: "mysql+pymysql://{{ mysql_nova_username }}:{{ mysql_nova_password }}@localhost/{{ mysql_nova_api_database }}"
+      openstack_nova_management_ip: "{{ ipv4_address }}"
+      openstack_nova_hostname: "{{ groups['controller'][0] }}"
+      openstack_neutron_hostname: "{{ groups['controller'][0] }}"
+      rabbitmq_hostname: localhost
+      rabbitmq_username: "{{ rabbitmq_openstack_username }}"
+      rabbitmq_password: "{{ rabbitmq_openstack_password }}"

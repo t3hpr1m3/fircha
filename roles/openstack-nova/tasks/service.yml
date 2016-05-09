@@ -1,0 +1,20 @@
+---
+- name: check to see if the nova service exists in keystone
+  command: "openstack service show {{ openstack_nova_service_name }}"
+  environment:
+    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
+    OS_IDENTITY_API_VERSION: 3
+    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
+    OS_USERNAME: "keystone"
+  register: nova_service
+  failed_when: nova_service.rc > 1
+  changed_when: False
+
+- name: ensure the nova service exists in keystone
+  command: "openstack service create --name {{ openstack_nova_service_name }} --description '{{ openstack_nova_service_description }}' compute"
+  environment:
+    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
+    OS_IDENTITY_API_VERSION: 3
+    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
+    OS_USERNAME: "keystone"
+  when: nova_service.rc != 0

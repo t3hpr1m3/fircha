@@ -1,0 +1,20 @@
+---
+- name: check to see if the nova user has the admin role in keystone
+  shell: "openstack role assignment list --project service --user nova | wc -l"
+  environment:
+    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
+    OS_IDENTITY_API_VERSION: 3
+    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
+    OS_USERNAME: "keystone"
+  register: keystone_nova_user_admin_role
+  failed_when: keystone_nova_user_admin_role.rc != 0
+  changed_when: False
+
+- name: ensure the nova user has the admin role in keystone
+  command: "openstack role add --project service --user nova admin"
+  environment:
+    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
+    OS_IDENTITY_API_VERSION: 3
+    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
+    OS_USERNAME: "keystone"
+  when: keystone_nova_user_admin_role.stdout == '1'

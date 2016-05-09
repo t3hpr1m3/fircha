@@ -1,0 +1,9 @@
+---
+- name: ensure the nova endpoint exists in keystone
+  keystone_endpoint:
+    publicurl: "http://{{ openstack_nova_hostname }}:8774/v2.1/%(tenant_id)s"
+    internalurl: "http://{{ openstack_nova_hostname }}:8774/v2.1/%(tenant_id)s"
+    adminurl: "http://{{ openstack_nova_hostname }}:8774/v2.1/%(tenant_id)s"
+    service_name: "{{ openstack_nova_service_name }}"
+    token: "{{ openstack_keystone_admin_token }}"
+    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"
