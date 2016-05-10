@@ -310,7 +310,6 @@
     - section: neutron
       option: metadata_proxy_shared_secret
       value: "{{ openstack_metadata_proxy_shared_secret }}"
-      value: True
     - section: neutron
       option: password
       value: "{{ openstack_neutron_password }}"
