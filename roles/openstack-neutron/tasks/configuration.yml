@@ -30,6 +30,9 @@
     - section: DEFAULT
       option: service_plugins
       value: router
+    - section: DEFAULT
+      option: api_workers
+      value: 2
     - section: keystone_authtoken
       option: auth_uri
       value: "http://{{ openstack_keystone_hostname }}:5000"
@@ -234,6 +237,9 @@
     - section: DEFAULT
       option: metadata_proxy_shared_secret
       value: "{{ openstack_metadata_proxy_shared_secret }}"
+    - section: DEFAULT
+      option: metadata_workers
+      value: 2
   notify:
     - restart neutron-server
     - restart neutron-linuxbridge-agent
