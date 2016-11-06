@@ -16,7 +16,8 @@ DEFAULT_INVENTORY = {
 				"ansible_ssh_hostname": "hulk.daprime.net",
 				"interface": "br-ex",
 				"ipv4_address": "192.168.0.100",
-				"openstack_cinder_volume_members": ["/dev/sdb", "/dev/sdc"],
+				"openstack_cinder_volume_members": ["/dev/sdb"],
+				"openstack_nova_volume_members": ["/dev/sdc"],
 				"openstack_cinder_volume_targets": ["/dev/sda", "/dev/sdb", "/dev/sdc"]
 			}
 		}
