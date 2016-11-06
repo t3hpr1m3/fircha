@@ -16,6 +16,12 @@
     - nova-novncproxy
     - nova-scheduler
 
+- name: ensure the nova volume group exists
+  lvg:
+    vg: nova-volumes
+    pvs: "{{ openstack_nova_volume_members }}"
+    state: present
+
 - include: configuration.yml
 
 - meta: flush_handlers
