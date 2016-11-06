@@ -4,6 +4,7 @@ openstack_nova_password: iamnotverysecret
 openstack_nova_service_name: nova
 openstack_nova_service_description: Openstack Compute
 openstack_nova_hostname: localhost
+openstack_nova_volume_members: []
 openstack_glance_hostname: localhost
 openstack_neutron_hostname: localhost
 openstack_neutron_username: neutron
