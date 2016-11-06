@@ -10,6 +10,12 @@
       option: enabled_apis
       value: "osapi_compute,metadata"
     - section: DEFAULT
+      option: osapi_compute_workers
+      value: 2
+    - section: DEFAULT
+      option: metadata_workers
+      value: 2
+    - section: DEFAULT
       option: rpc_backend
       value: rabbit
     - section: DEFAULT
@@ -63,6 +69,12 @@
     - section: keystone_authtoken
       option: password
       value: "{{ openstack_nova_password }}"
+    - section: libvirt
+      option: images_type
+      value: lvm
+    - section: libvirt
+      option: images_volume_group
+      value: nova-volumes
     - section: oslo_concurrency
       option: lock_path
       value: "/var/lib/nova/tmp"
@@ -87,6 +99,9 @@
     - section: vnc
       option: novncproxy_base_url
       value: "http://{{ ansible_hostname }}:6080/vnc_auto.html"
+    - section: conductor
+      option: workers
+      value: 2
 
 
   notify:
