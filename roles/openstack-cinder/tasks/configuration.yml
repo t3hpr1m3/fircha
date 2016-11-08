@@ -15,6 +15,15 @@
       option: enabled_backends
       value: lvm
     - section: DEFAULT
+      option: volume_driver
+      value: cinder.volume.drivers.lvm.LVMVolumeDriver
+    - section: DEFAULT
+      option: volume_group
+      value: cinder-volumes
+    - section: DEFAULT
+      option: volume_clear
+      value: none
+    - section: DEFAULT
       option: glance_api_servers
       value: "http://{{ openstack_glance_hostname }}:9292"
     - section: DEFAULT
@@ -50,18 +59,6 @@
     - section: keystone_authtoken
       option: password
       value: "{{ openstack_cinder_password }}"
-    - section: lvm
-      option: volume_driver
-      value: cinder.volume.drivers.lvm.LVMVolumeDriver
-    - section: lvm
-      option: volume_group
-      value: cinder-volumes
-    - section: lvm
-      option: iscsi_protocol
-      value: iscsi
-    - section: lvm
-      option: iscsi_helper
-      value: tgtadm
     - section: oslo_concurrency
       option: lock_path
       value: /var/lib/cinder/tmp
