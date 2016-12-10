@@ -69,6 +69,12 @@
     - section: keystone_authtoken
       option: password
       value: "{{ openstack_nova_password }}"
+    - section: libvirt
+      option: images_type
+      value: lvm
+    - section: libvirt
+      option: images_volume_group
+      value: nova-volumes
     - section: oslo_concurrency
       option: lock_path
       value: "/var/lib/nova/tmp"
