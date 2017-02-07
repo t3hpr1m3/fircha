@@ -1,2 +1,4 @@
 ---
-cloudarchive_source: "deb http://ubuntu-cloud.archive.canonical.com/ubuntu trusty-updates/mitaka main"
+cloudarchive_source: "deb http://ubuntu-cloud.archive.canonical.com/ubuntu xenial-updates/newton main"
+openstack_rabbitmq_username: openstack
+openstack_rabbitmq_password: CHANGEME

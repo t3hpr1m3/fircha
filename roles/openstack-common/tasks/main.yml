@@ -14,3 +14,15 @@
   apt:
     name: python-openstackclient
     state: present
+
+- name: ensure the openstack rabbitmq user is present
+  rabbitmq_user:
+    user: "{{ openstack_rabbitmq_username }}"
+    password: "{{ openstack_rabbitmq_password }}"
+    permissions:
+      - vhost: /
+        configure_priv: .*
+        read_priv: .*
+        write_priv: .*
+    state: present
+  tags: rabbitmq

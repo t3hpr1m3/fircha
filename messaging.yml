@@ -1,0 +1,8 @@
+---
+- hosts: messaging
+  become: yes
+  become_user: root
+  roles:
+    - hostname
+    - ntp
+    - Stouts.rabbitmq

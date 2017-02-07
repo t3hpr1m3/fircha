@@ -1,22 +1,53 @@
 ---
-- name: ensure the keystone service cannot start
-  copy:
-    content: manual
-    dest: /etc/init/keystone.override
+- name: ensure the keystone database exists
+  mysql_db:
+    name: "{{ openstack_keystone_database_name }}"
+  tags: mysql,keystone
+
+- name: ensure the keystone mysql user exists
+  mysql_user:
+    name: "{{ openstack_keystone_database_username }}"
+    password: "{{ openstack_keystone_database_password }}"
+    priv: "{{ openstack_keystone_database_name }}.*:ALL,GRANT"
+    state: present
+  tags: mysql,keystone
 
 - name: ensure the keystone package is installed
   apt:
     name: keystone
     state: present
+  tags: keystone
 
 - include: configuration.yml
-- include: apache2.yml
 
 - meta: flush_handlers
 
-- include: services.yml
-- include: endpoints.yml
-- include: domains.yml
+- name: ensure the fernet keys are setup
+  command: keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone
+  args:
+    creates: /etc/keystone/fernet-keys/0
+  tags: keystone
+
+- name: ensure the credentials are setup
+  command: keystone-manage credential_setup --keystone-user keystone --keystone-group keystone
+  args:
+    creates: /etc/keystone/credential-keys/0
+  tags: keystone
+
+- name: ensure keystone is bootstrapped
+  command: |
+    keystone-manage bootstrap \
+    --bootstrap-password {{ openstack_admin_password }} \
+    --bootstrap-admin-url http://{{ openstack_keystone_hostname }}:35357/v3/ \
+    --bootstrap-internal-url http://{{ openstack_keystone_hostname }}:35357/v3/ \
+    --bootstrap-public-url http://{{ openstack_keystone_hostname }}:5000/v3/ \
+    --bootstrap-region-id RegionOne
+  changed_when: false
+  register: add_service
+  until: add_service|success
+  retries: 5
+  delay: 10
+
 - include: projects.yml
 - include: users.yml
 - include: roles.yml

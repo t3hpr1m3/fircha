@@ -1,4 +1,2 @@
 ---
 mysql_root_password: iamveryinsecure
-mysql_databases: []
-mysql_users: []

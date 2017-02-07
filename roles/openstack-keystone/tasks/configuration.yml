@@ -1,20 +1,4 @@
 ---
-- name: ensure keystone is configured
-  ini_file:
-    dest: /etc/keystone/keystone.conf
-    section: "{{ item.section }}"
-    option: "{{ item.option }}"
-    value: "{{ item.value }}"
-  with_items:
-    - section: DEFAULT
-      option: admin_token
-      value: "{{ openstack_keystone_admin_token }}"
-    - section: DEFAULT
-      option: log_dir
-      value: "{{ openstack_keystone_log_dir }}"
-  notify:
-    - restart apache2
-
 - name: ensure the keystone database is configured
   ini_file:
     dest: /etc/keystone/keystone.conf
@@ -42,4 +26,3 @@
   notify:
     - restart apache2
     - sync keystone database
-    - initialize fernet keys

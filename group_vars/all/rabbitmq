@@ -1,14 +1,4 @@
 ---
-rabbitmq_users:
-  - user: "{{ rabbitmq_openstack_username }}"
-    password: "{{ rabbitmq_openstack_password }}"
-    vhost: /
-    configure_priv: .*
-    read_priv: .*
-    write_priv: .*
-    tags: administrator
-rabbitmq_plugins:
-  - rabbitmq_management
 rabbitmq_vhosts: []
 rabbitmq_user_remove:
   - guest

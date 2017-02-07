@@ -14,6 +14,7 @@ DEFAULT_INVENTORY = {
 		"hulk": {
 			"vars": {
 				"ansible_ssh_hostname": "hulk.daprime.net",
+				"ansible_ssh_user": "jdubz",
 				"interface": "br-ex",
 				"ipv4_address": "192.168.0.100",
 				"openstack_cinder_volume_members": ["/dev/sdb"],
@@ -24,6 +25,12 @@ DEFAULT_INVENTORY = {
 	},
 	"groups": {
 		"router": {
+			"hosts": ["hulk"]
+		},
+		"database": {
+			"hosts": ["hulk"]
+		},
+		"messaging": {
 			"hosts": ["hulk"]
 		},
 		"controller": {

@@ -45,20 +45,20 @@
     db: test
     state: absent
 
-- name: create required mysql databases
-  mysql_db:
-    db: "{{ item }}"
-    state: present
-  with_items: "{{ mysql_databases }}"
+# - name: create required mysql databases
+#   mysql_db:
+#     db: "{{ item }}"
+#     state: present
+#   with_items: "{{ mysql_databases }}"
 
-- name: create required mysql users
-  mysql_user:
-    name: "{{ item.name }}"
-    password: "{{ item.password }}"
-    host: "{{ item.host }}"
-    priv: "{{ item.priv }}"
-    append_privs: yes
-  with_items: "{{ mysql_users }}"
+# - name: create required mysql users
+#   mysql_user:
+#     name: "{{ item.name }}"
+#     password: "{{ item.password }}"
+#     host: "{{ item.host }}"
+#     priv: "{{ item.priv }}"
+#     append_privs: yes
+#   with_items: "{{ mysql_users }}"
 
 - name: ensure mysql is configured properly for openstack
   template:

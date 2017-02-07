@@ -1,0 +1,11 @@
+
+---
+- hosts: controller
+  become: yes
+  become_user: root
+  roles:
+    - role: hostname
+    - role: ntp
+    - role: openstack-keystone
+      openstack_keystone_mysql_host: "{{ groups['database'][0] }}"
+      openstack_keystone_hostname: "{{ groups['controller'][0] }}"
