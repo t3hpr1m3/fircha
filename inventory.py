@@ -24,6 +24,9 @@ DEFAULT_INVENTORY = {
 		}
 	},
 	"groups": {
+		"memcached": {
+			"hosts": ["hulk"]
+		},
 		"router": {
 			"hosts": ["hulk"]
 		},

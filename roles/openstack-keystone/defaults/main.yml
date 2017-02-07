@@ -1,5 +1,6 @@
 ---
 openstack_admin_password: CHANGEME
+openstack_keystone_memcached_host: localhost
 openstack_keystone_database_url: sqlite:////var/lib/keystone/keystone.db
 openstack_keystone_service_name: keystone
 openstack_keystone_service_description: OpenStack Identity

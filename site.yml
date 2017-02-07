@@ -1,4 +1,4 @@
+- include: memcached.yml
 - include: database.yml
 - include: messaging.yml
-- include: keystone.yml
-- include: openstack.yml
+- include: controller.yml

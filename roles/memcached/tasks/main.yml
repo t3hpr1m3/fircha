@@ -6,3 +6,12 @@
   with_items:
     - memcached
     - python-memcache
+  tags: memcached
+
+- name: ensure memcache is listening on the right interface
+  lineinfile:
+    dest: /etc/memcached.conf
+    regexp: '^-l'
+    line: "-l {{ ansible_default_ipv4.address }}"
+  notify: restart memcached
+  tags: memcached

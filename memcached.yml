@@ -1,0 +1,8 @@
+---
+- hosts: memcached
+  become: yes
+  become_user: root
+  roles:
+    - hostname
+    - ntp
+    - memcached

@@ -9,3 +9,4 @@
     - role: openstack-keystone
       openstack_keystone_mysql_host: "{{ groups['database'][0] }}"
       openstack_keystone_hostname: "{{ groups['controller'][0] }}"
+      openstack_keystone_memcached_host: "{{ groups['memcached'][0] }}"
