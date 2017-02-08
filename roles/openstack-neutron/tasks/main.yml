@@ -1,8 +1,68 @@
 ---
-- include: user.yml
-- include: user_role.yml
-- include: service.yml
-- include: endpoints.yml
+- name: ensure the neutron database exists
+  mysql_db:
+    name: "{{ database_name }}"
+  delegate_to: "{{ database_host }}"
+  tags: neutron,mysql
+
+- name: ensure the neutron mysql user exists
+  mysql_user:
+    name: "{{ database_username }}"
+    password: "{{ database_password }}"
+    priv: "{{ database_name }}.*:ALL,GRANT"
+    host: "{{ ansible_hostname }}"
+    state: present
+  delegate_to: "{{ database_host }}"
+  tags: neutron,mysql
+
+- name: ensure the neutron user exists in keystone
+  keystone_user:
+    name: "{{ service_username }}"
+    domain: default
+    password: "{{ service_password }}"
+    default_project: service
+    update_password: on_create
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: neutron,keystone
+
+- name: ensure the neutron user has the admin role in the service project
+  keystone_user_role:
+    user: "{{ service_username }}"
+    role: admin
+    project: service
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: neutron,keystone
+
+- name: ensure the neutron service exists in keystone
+  keystone_service:
+    name: "{{ service_name }}"
+    description: "{{ service_description }}"
+    type: network
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: neutron,keystone
+
+- name: ensure the neutron endpoints exist in keystone
+  keystone_endpoint:
+    url: "{{ item.url }}"
+    interface: "{{ item.interface }}"
+    service: "{{ service_name }}"
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  with_items:
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:9696"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:9696"
+    - interface: public
+      url: "http://{{ ansible_hostname }}:9696"
+  tags: neutron,keystone
 
 - name: ensure the neutron packages are installed
   apt:
@@ -16,6 +76,7 @@
     - neutron-dhcp-agent
     - neutron-metadata-agent
     - neutron-openvswitch-agent
+  tags: neutron
 
 - include: configuration.yml
 

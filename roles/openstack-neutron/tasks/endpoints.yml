@@ -1,9 +1,0 @@
----
-- name: ensure the neutron endpoints exist in keystone
-  keystone_endpoint:
-    publicurl: "http://{{ openstack_neutron_hostname }}:9696"
-    internalurl: "http://{{ openstack_neutron_hostname }}:9696"
-    adminurl: "http://{{ openstack_neutron_hostname }}:9696"
-    service_name: "{{ openstack_neutron_service_name }}"
-    token: "{{ openstack_keystone_admin_token }}"
-    endpoint: "http://{{ openstack_keystone_hostname }}:35357/v2.0"

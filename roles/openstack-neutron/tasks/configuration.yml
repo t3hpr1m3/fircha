@@ -8,7 +8,10 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ openstack_neutron_database_url }}"
+      value: "{{ database_url }}"
+    - section: DEFAULT
+      option: transport_url
+      value: "{{ rabbitmq_url }}"
     - section: DEFAULT
       option: allow_overlapping_ips
       value: True
@@ -24,54 +27,54 @@
     - section: DEFAULT
       option: notify_nova_on_port_status_changes
       value: True
-    - section: DEFAULT
-      option: rpc_backend
-      value: rabbit
+    # - section: DEFAULT
+    #   option: rpc_backend
+    #   value: rabbit
     - section: DEFAULT
       option: service_plugins
       value: router
-    - section: DEFAULT
-      option: api_workers
-      value: 2
+    # - section: DEFAULT
+    #   option: api_workers
+    #   value: 2
     - section: keystone_authtoken
       option: auth_uri
-      value: "http://{{ openstack_keystone_hostname }}:5000"
+      value: "http://{{ keystone_hostname }}:5000"
     - section: keystone_authtoken
       option: auth_url
-      value: "http://{{ openstack_keystone_hostname }}:35357"
+      value: "http://{{ keystone_hostname }}:35357"
     - section: keystone_authtoken
       option: memcached_servers
-      value: "localhost:11211"
+      value: "{{ memcached_host }}"
     - section: keystone_authtoken
       option: auth_type
       value: password
     - section: keystone_authtoken
       option: project_domain_name
-      value: default
+      value: Default
     - section: keystone_authtoken
       option: user_domain_name
-      value: default
+      value: Default
     - section: keystone_authtoken
       option: project_name
       value: service
     - section: keystone_authtoken
       option: username
-      value: "{{ openstack_neutron_username }}"
+      value: "{{ service_username }}"
     - section: keystone_authtoken
       option: password
-      value: "{{ openstack_neutron_password }}"
+      value: "{{ service_password }}"
     - section: nova
       option: auth_url
-      value: "http://{{ openstack_keystone_hostname }}:35357"
+      value: "http://{{ keystone_hostname }}:35357"
     - section: nova
       option: auth_type
       value: password
     - section: nova
       option: password
-      value: "{{ openstack_nova_password }}"
+      value: "{{ nova_password }}"
     - section: nova
       option: project_domain_name
-      value: default
+      value: Default
     - section: nova
       option: project_name
       value: service
@@ -80,19 +83,19 @@
       value: RegionOne
     - section: nova
       option: user_domain_name
-      value: default
+      value: Default
     - section: nova
       option: username
-      value: "{{ openstack_nova_username }}"
-    - section: oslo_messaging_rabbit
-      option: rabbit_host
-      value: "{{ rabbitmq_hostname }}"
-    - section: oslo_messaging_rabbit
-      option: rabbit_userid
-      value: "{{ rabbitmq_username }}"
-    - section: oslo_messaging_rabbit
-      option: rabbit_password
-      value: "{{ rabbitmq_password }}"
+      value: "{{ nova_username }}"
+    # - section: oslo_messaging_rabbit
+    #   option: rabbit_host
+    #   value: "{{ rabbitmq_hostname }}"
+    # - section: oslo_messaging_rabbit
+    #   option: rabbit_userid
+    #   value: "{{ rabbitmq_username }}"
+    # - section: oslo_messaging_rabbit
+    #   option: rabbit_password
+    #   value: "{{ rabbitmq_password }}"
   notify:
     - restart neutron-server
     - restart neutron-linuxbridge-agent
@@ -100,6 +103,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron ml2 plugin is configured
   ini_file:
@@ -145,6 +149,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron linux bridge agent is configured
   ini_file:
@@ -178,6 +183,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron layer-3 agent is configured
   ini_file:
@@ -199,6 +205,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron dhcp agent is configured
   ini_file:
@@ -223,6 +230,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron metadata agent is configured
   ini_file:
@@ -236,7 +244,7 @@
       value: "{{ ansible_hostname }}"
     - section: DEFAULT
       option: metadata_proxy_shared_secret
-      value: "{{ openstack_metadata_proxy_shared_secret }}"
+      value: "{{ proxy_shared_secret }}"
     - section: DEFAULT
       option: metadata_workers
       value: 2
@@ -247,6 +255,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure neutron metadata agent is configured
   ini_file:
@@ -260,7 +269,7 @@
       value: "{{ ansible_hostname }}"
     - section: DEFAULT
       option: metadata_proxy_shared_secret
-      value: "{{ openstack_metadata_proxy_shared_secret }}"
+      value: "{{ proxy_shared_secret }}"
   notify:
     - restart neutron-server
     - restart neutron-linuxbridge-agent
@@ -268,6 +277,8 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  changed_when: True
+  tags: neutron
 
 - name: ensure openvswitch agent is configured
   ini_file:
@@ -287,10 +298,11 @@
       value: external:br-ex
     - section: ovs
       option: local_ip
-      value: "{{ ipv4_address }}"
+      value: "{{ ansible_default_ipv4.address }}"
     - section: securitygroup
       option: firewall_driver
       value: neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+  changed_when: True
   notify:
     - sync neutron database
     - restart neutron-server
@@ -299,6 +311,7 @@
     - restart neutron-metadata-agent
     - restart neutron-l3-agent
     - restart neutron-openvswitch-agent
+  tags: neutron
 
 - name: ensure nova is configured for neutron
   ini_file:
@@ -308,37 +321,38 @@
     value: "{{ item.value }}"
   with_items:
     - section: neutron
+      option: url
+      value: "http://{{ ansible_hostname }}:9696"
+    - section: neutron
+      option: auth_url
+      value: "http://{{ keystone_hostname }}:35357"
+    - section: neutron
       option: auth_type
       value: password
     - section: neutron
-      option: auth_url
-      value: "http://{{ openstack_keystone_hostname }}:35357"
-    - section: neutron
-      option: metadata_proxy_shared_secret
-      value: "{{ openstack_metadata_proxy_shared_secret }}"
-    - section: neutron
-      option: password
-      value: "{{ openstack_neutron_password }}"
-    - section: neutron
       option: project_domain_name
-      value: default
+      value: Default
     - section: neutron
-      option: project_name
-      value: service
+      option: user_domain_name
+      value: Default
     - section: neutron
       option: region_name
       value: RegionOne
     - section: neutron
-      option: service_metadata_proxy
-      value: True
-    - section: neutron
-      option: url
-      value: "http://{{ openstack_nova_hostname }}:9696"
+      option: project_name
+      value: service
     - section: neutron
       option: username
-      value: "{{ openstack_neutron_username }}"
+      value: "{{ service_username }}"
     - section: neutron
-      option: user_domain_name
-      value: default
+      option: password
+      value: "{{ service_password }}"
+    # - section: neutron
+    #   option: metadata_proxy_shared_secret
+    #   value: "{{ proxy_shared_secret }}"
+    # - section: neutron
+    #   option: service_metadata_proxy
+    #   value: True
   notify:
     - restart nova-api
+  tags: neutron,nova
