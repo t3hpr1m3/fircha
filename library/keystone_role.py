@@ -9,7 +9,7 @@ except ImportError:
 else:
 	keystoneclient_found = True
 
-class Service(object):
+class Role(object):
 	def __init__(self, module):
 		self.module          = module
 		self.auth            = dict(
@@ -20,13 +20,9 @@ class Service(object):
 		)
 
 		self.name            = module.params['name']
-		self.description     = module.params['description']
-		self.type            = module.params['type']
-		self.enabled         = module.params['enabled']
+		self.domain          = module.params['domain']
 		self.state           = module.params['state']
-		self.keystone        = None
-		self.service         = None
-		self.user            = None
+		self.role            = None
 		self.id              = None
 
 	def _authenticate(self):
@@ -52,79 +48,65 @@ class Service(object):
 			e = get_exception()
 			self.module.exit_json(failed=True, msg="%s" % e)
 
-
-	def _get_service(self):
-		services = self.keystone.services.list(type=self.type)
-		if services:
-			return services[0]
+	def _get_domain(self):
+		for entry in self.keystone.domains.list():
+			if entry.id == self.domain or entry.name == self.domain:
+				return entry
 
 		return None
 
-	def service_exists(self):
+	def _get_role(self):
+		domain = None
+		if self.domain:
+			domain = self._get_domain()
+			if domain is None:
+				self.module.fail_json(msg="Invalid domain: %s" %
+						self.domain)
+
+		for entry in self.keystone.roles.list():
+			if entry.name == self.name:
+				if domain:
+					if entry.domain == domain:
+						return entry
+				else:
+					return entry
+
+		return None
+
+	def role_exists(self):
 		self._authenticate()
-		service = self._get_service()
+		role = self._get_role()
 
-		return service is not None
+		return role is not None
 
-	def create_service(self):
+	def create_role(self):
 		self._authenticate()
-
-		self.service = self.keystone.services.create(name=self.name,
-				type=self.type, description=self.description,
-				enabled=self.enabled)
-		self.id = self.service.id
-
-	def needs_update(self):
-		self._authenticate()
-		service = self._get_service()
-		if service is None:
-			return False
-
-		if service.name != self.name:
-			return True
-
-		if service.enabled != self.enabled:
-			return True
-
-		if service.description != self.description:
-			return True
-
-		return False
-
-	def update_service(self):
-		self._authenticate()
-
-		service = self._get_service()
-		if service is None:
-			self.module.fail_json(msg="Service does not exist")
+		domain = None
+		if self.domain:
+			domain = self._get_domain()
+			if domain is None:
+				self.module.fail_json(msg="Invalid domain: %s" %
+						self.domain)
 
 		kwargs = {}
-		if self.name is not None and service.name != self.name:
-			kwargs['name'] = self.name
-		if self.enabled is not None and service.enabled != self.enabled:
-			kwargs['enabled'] = self.enabled
-		if self.description is not None and service.description != self.description:
-			kwargs['description'] = self.description
+		if domain:
+			kwargs['domain'] = domain
+		ks_role = self.keystone.roles.create(self.name, **kwargs)
+		self.role = ks_role
+		self.id = self.role.id
 
-		if kwargs:
-			ks_service = self.keystone.services.update(service, **kwargs)
-			self.service = ks_service
-			self.id = self.service.id
-
-	def remove_service(self):
+	def remove_role(self):
 		self._authenticate()
-		service = self._get_service()
-		if service is not None:
-			self.keystone.services.delete(service)
+		role = self._get_role()
+		if role is not None:
+			self.keystone.roles.delete(role)
 
 def main():
 
 	module = AnsibleModule(
 		argument_spec = dict(
 			name=dict(required=True, type='str'),
-			description=dict(required=False, type='str'),
-			type=dict(default=None, type='str'),
-			enabled=dict(required=False, default=True, type='bool'),
+			domain=dict(required=False, type='str'),
 			state=dict(default='present', choices=['present',
 			'absent']),
 			auth_url=dict(required=False,
@@ -141,28 +123,23 @@ def main():
 	if not keystoneclient_found:
 		module.fail_json(msg="the python-keystoneclient module is required.  Did you forget to install python-openstackclient?")
 
-	service = Service(module)
+	role = Role(module)
 	changed = False
 	result = {}
 
-	if service.state == 'absent':
-		if service.service_exists():
+	if role.state == 'absent':
+		if role.role_exists():
 			if module.check_mode:
 				module.exit_json(changed=True)
-			service.remove_service()
+			role.remove_role()
 			changed = True
-	elif service.state == 'present':
-		if not service.service_exists():
+	elif role.state == 'present':
+		if not role.role_exists():
 			if module.check_mode:
 				module.exit_json(changed=True)
-			service.create_service()
+			role.create_role()
 			changed = True
-			result['id'] = service.id
-		else:
-			if service.needs_update():
-				service.update_service()
-				changed = True
-				result['id'] = service.id
+			result['id'] = role.id
 
 	result['changed'] = changed
 

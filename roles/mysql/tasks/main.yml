@@ -45,23 +45,9 @@
     db: test
     state: absent
 
-# - name: create required mysql databases
-#   mysql_db:
-#     db: "{{ item }}"
-#     state: present
-#   with_items: "{{ mysql_databases }}"
-
-# - name: create required mysql users
-#   mysql_user:
-#     name: "{{ item.name }}"
-#     password: "{{ item.password }}"
-#     host: "{{ item.host }}"
-#     priv: "{{ item.priv }}"
-#     append_privs: yes
-#   with_items: "{{ mysql_users }}"
-
 - name: ensure mysql is configured properly for openstack
   template:
-    src: etc/mysql/conf.d/mysqld_openstack.cnf.j2
-    dest: /etc/mysql/conf.d/mysqld_openstack.cnf
+    src: etc/mysql/mariadb.conf.d/99-openstack.cnf.j2
+    dest: /etc/mysql/mariadb.conf.d/99-openstack.cnf
   notify: restart mysql
+  tags: mysql

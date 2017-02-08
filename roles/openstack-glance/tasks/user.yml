@@ -1,20 +1,17 @@
 ---
-- name: check to see if the glance user exists in keystone
-  command: "openstack user show --domain default glance"
-  environment:
-    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
-    OS_IDENTITY_API_VERSION: 3
-    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
-    OS_USERNAME: "keystone"
-  register: keystone_glance_user
-  failed_when: keystone_glance_user.rc > 1
-  changed_when: False
-
 - name: ensure the glance user exists in keystone
-  command: "openstack user create --domain default --password {{ openstack_glance_password }} glance"
-  environment:
-    OS_TOKEN: "{{ openstack_keystone_admin_token }}"
-    OS_IDENTITY_API_VERSION: 3
-    OS_URL: "http://{{ openstack_keystone_hostname }}:35357/v3"
-    OS_USERNAME: "keystone"
-  when: keystone_glance_user.rc != 0
+  keystone_user:
+    name: "{{ openstack_glance_username }}"
+    domain: default
+    password: "{{ openstack_glance_password }}"
+    default_project: service
+    update_password: on_create
+    roles:
+      - admin
+    auth_username: admin
+    auth_password: "{{ openstack_admin_password }}"
+    auth_url: "http://{{ openstack_keystone_hostname }}:35357/v3"
+  tags: glance,keystone
+
+
+

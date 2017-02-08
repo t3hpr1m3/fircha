@@ -1,15 +1,15 @@
 - name: restart glance-api
-  service:
+  systemd:
     name: glance-api
     state: restarted
 
 - name: restart glance-registry
-  service:
+  systemd:
     name: glance-registry
     state: restarted
 
 - name: sync glance database
   command: glance-manage db_sync
   become: yes
-  become_user: keystone
+  become_user: glance
 

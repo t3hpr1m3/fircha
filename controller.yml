@@ -10,3 +10,9 @@
       openstack_keystone_mysql_host: "{{ groups['database'][0] }}"
       openstack_keystone_hostname: "{{ groups['controller'][0] }}"
       openstack_keystone_memcached_host: "{{ groups['memcached'][0] }}"
+    - role: openstack-glance
+      openstack_glance_database_host: "{{ groups['database'][0] }}"
+      openstack_glance_memcached_host: "{{ groups['memcached'][0] }}:11211"
+      openstack_glance_hostname: "{{ groups['controller'][0] }}"
+      openstack_keystone_hostname: "{{ groups['controller'][0] }}"
+      openstack_glance_database_url: "mysql+pymysql://{{ openstack_glance_database_username }}:{{ openstack_glance_database_password }}@{{ groups['database'][0] }}/{{ openstack_glance_database_name }}"

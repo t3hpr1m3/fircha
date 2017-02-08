@@ -1,192 +1,175 @@
 #!/usr/bin/env python
 
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.pycompat24 import get_exception
 try:
-	from keystoneclient.v2_0 import client
+	from keystoneauth1.identity import v3
+	from keystoneauth1 import session
+	from keystoneclient.v3 import client
 except ImportError:
 	keystoneclient_found = False
 else:
 	keystoneclient_found = True
 
-def authenticate(endpoint, token, login_user, login_password,
-		login_tenant_name):
+class Endpoint(object):
+	def __init__(self, module):
+		self.module       = module
+		self.auth         = dict(
+			url = module.params['auth_url'],
+			token = module.params['auth_token'],
+			username = module.params['auth_username'],
+			password = module.params['auth_password']
+		)
 
-	if token:
-		return client.Client(endpoint=endpoint, token=token)
-	else:
-		return client.Client(auth_url=endpoint, username=login_user,
-							password=login_password,
-							tenant_name=login_tenant_name)
+		self.url          = module.params['url']
+		self.interface    = module.params['interface']
+		self.service      = module.params['service']
+		self.region       = module.params['region']
+		self.state        = module.params['state']
+		self.keystone     = None
+		self.endpoint     = None
+		self.id           = None
 
-def ensure_endpoint_exists(keystone, publicurl, internalurl,
-		adminurl, region, service_name, check_mode):
+	def _authenticate(self):
+		if self.auth['token']:
+			auth = v3.Password(auth_url=self.auth['url'],
+					token=self.auth['token'],
+					project_name='admin',
+					user_domain_id='default',
+					project_domain_id='default')
+		else:
+			auth = v3.Password(auth_url=self.auth['url'],
+					username=self.auth['username'],
+					password=self.auth['password'],
+					project_name='admin',
+					user_domain_id='default',
+					project_domain_id='default')
 
-	service_id = get_service(keystone, service_name).id
+		sess = session.Session(auth=auth)
 
-	try:
-		endpoint = get_endpoint(keystone=keystone, publicurl=publicurl,
-				internalurl=internalurl, adminurl=adminurl,
-				region=region, service_id=service_id)
-	except KeyError:
-		pass
-	else:
-		return False, endpoint.id
+		try:
+			self.keystone = client.Client(session=sess)
+		except Exception:
+			e = get_exception()
+			self.module.exit_json(failed=True, msg="%s" % e)
 
-	if check_mode:
-		return True, None
+	def _get_service(self):
+		for entry in self.keystone.services.list():
+			if entry.name == self.service or entry.id == self.service:
+				return entry
 
-	ks_service = keystone.endpoints.create(service_id=service_id,
-			publicurl=publicurl, internalurl=internalurl,
-			adminurl=adminurl, region=region)
+		return None
 
-	return True, ks_service.id
+	def _get_endpoint(self):
+		service = self._get_service()
+		if service is None:
+			return None
 
-def ensure_endpoint_absent(keystone, publicurl, internalurl, adminurl, region,
-		service_name, check_mode):
+		for entry in self.keystone.endpoints.list(service=service,
+				region=self.region):
+			if entry.interface == self.interface:
+				return entry
 
-	service_id = get_service(keystone, service_name).id
+		return None
 
-	if not endpoint_exists(keystone=keystone, publicurl=publicurl,
-			internalurl=internalurl, adminurl=adminurl,
-			region=region, service_id=service_id):
-		return False
+	def endpoint_exists(self):
+		self._authenticate()
+		endpoint = self._get_endpoint()
 
-	if check_mode:
-		return True
+		return endpoint is not None
 
-	endpoint = get_endpoint(keystone=keystone, publicurl=publicurl,
-			internalurl=internalurl, adminurl=adminurl,
-			region=region, service_id=service_id)
-	keystone.endpoints.delete(endpoint.id)
+	def create_endpoint(self):
+		self._authenticate()
+		service = self._get_service()
+		if service is None:
+			self.module.fail_json(msg="Invalid service: %s" % self.service)
 
-def endpoint_match(endpoint, publicurl, internalurl, adminurl, region,
-		service_id):
+		ks_endpoint = self.keystone.endpoints.create(service=service,
+			url=self.url, interface=self.interface,
+			region=self.region)
+		self.endpoint = ks_endpoint
+		self.id = self.endpoint.id
 
-	return endpoint.publicurl == publicurl and \
-			getattr(endpoint, 'internalurl') == internalurl and \
-			getattr(endpoint, 'adminurl') == adminurl and \
-			endpoint.region == region and \
-			endpoint.service_id == service_id
+	def needs_update(self):
+		self._authenticate()
+		endpoint = self._get_endpoint()
+		if endpoint is None:
+			return False
+		return endpoint.url != self.url
 
-def endpoint_exists(keystone, publicurl, internalurl, adminurl, region,
-		service_id):
-	endpoints = [x for x in keystone.endpoints.list() if endpoint_match(x,
-		publicurl, internalurl, adminurl, region, service_id)]
+	def update_endpoint(self):
+		self._authenticate()
+		service = self._get_service()
+		if service is None:
+			self.module.fail_json(msg="Invalid service: %s" %
+					self.service)
 
-	return any(endpoints)
+		endpoint = self._get_endpoint()
 
-def get_service(keystone, service_name):
-	services = [x for x in keystone.services.list() if x.name == service_name]
-	count = len(services)
-	if count == 0:
-		raise KeyError("No keystone services with name: %s" % service_name)
-	elif count > 1:
-		raise ValueError("%d services with name %s" % (count, service_name))
-	else:
-		return services[0]
+		if endpoint is None:
+			self.module.fail_json(msg="Endpoint does not exist")
 
-def get_endpoint(keystone, publicurl, internalurl, adminurl, region,
-		service_id):
-	endpoints = [x for x in keystone.endpoints.list() if endpoint_match(x,
-		publicurl, internalurl, adminurl, region, service_id)]
+		if endpoint.url != self.url:
+			ks_endpoint = self.keystone.endpoints.update(endpoint,
+					url=self.url)
+			self.endpoint = ks_endpoint
+			self.id = self.endpoint.id
 
-	count = len(endpoints)
-
-	if count == 0:
-		raise KeyError(
-				"No keystone endpoint with publicurl: %s, "
-				"internalurl: %s, adminurl: %s, region: %s, "
-				"service_id: %s" % (publicurl, internalurl,
-					adminurl, region, service_id))
-	elif count > 1:
-		raise ValueError(
-				"%d services with publicurl: %s, "
-				"internalurl: %s, adminurl: %s, region: %s, "
-				"service_id: %s" % (count, publicurl, internalurl,
-					adminurl, region, service_id))
-	else:
-		return endpoints[0]
+	def remove_endpoint(self):
+		self._authenticate()
+		endpoint = self._get_endpoint()
+		if endpoint is not None:
+			self.keystone.endpoints.delete(endpoint)
 
 
 def main():
-	argument_spec = openstack_argument_spec()
-	argument_spec.update(dict(
-		publicurl=dict(required=True),
-		internalurl=dict(required=True),
-		adminurl=dict(required=True),
-		region=dict(required=False, default='RegionOne'),
-		service_name=dict(required=True),
-		state=dict(default='present', choices=['present', 'absent']),
-		endpoint=dict(required=False,
-		default='http://127.0.0.1:35357/v3'),
-		token=dict(required=False),
-		login_user=dict(required=False),
-		login_password=dict(required=False),
-		login_tenant_name=dict(required=False)
-	))
 
 	module = AnsibleModule(
-		argument_spec=argument_spec,
+		argument_spec = dict(
+			url=dict(required=True),
+			interface=dict(required=True),
+			service=dict(required=True),
+			region=dict(required=False, default='RegionOne'),
+			state=dict(default='present', choices=['present', 'absent']),
+			auth_url=dict(required=False, default='http://127.0.0.1:35357/v3'),
+			auth_token=dict(required=False),
+			auth_username=dict(required=False),
+			auth_password=dict(required=False)
+		),
 		supports_check_mode=True,
-		mutually_exclusive=[['token', 'login_user'],
-				['token', 'login_password'],
-				['token', 'login_tenant_name']]
+		mutually_exclusive=[['auth_token', 'auth_username'],
+				['auth_token', 'auth_password']]
 	)
 
 	if not keystoneclient_found:
 		module.fail_json(msg="the python-keystoneclient module is required.  Did you forget to install python-openstackclient?")
 
-	publicurl               = module.params['publicurl']
-	internalurl             = module.params['internalurl']
-	adminurl                = module.params['adminurl']
-	service_name            = module.params['service_name']
-	region                  = module.params['region']
-	service_name            = module.params['service_name']
-	state                   = module.params['state']
-	endpoint                = module.params['endpoint']
-	token                   = module.params['token']
-	login_user              = module.params['login_user']
-	login_password          = module.params['login_password']
-	login_tenant_name       = module.params['login_tenant_name']
+	endpoint = Endpoint(module)
+	changed = False
+	result = {}
 
-	keystone = authenticate(endpoint=endpoint, token=token,
-			login_user=login_user,
-			login_password=login_password,
-			login_tenant_name=login_tenant_name)
-
-	check_mode = module.check_mode
-
-	id = None
-
-	try:
-		if state == 'present':
-			changed, id = ensure_endpoint_exists(keystone=keystone,
-					publicurl=publicurl,
-					internalurl=internalurl,
-					adminurl=adminurl,
-					region=region,
-					service_name=service_name,
-					check_mode=check_mode)
-
-		elif state == 'absent':
-			changed = ensure_endpoint_absent(keystone=keystone,
-					publicurl=publicurl,
-					internalurl=internalurl,
-					adminurl=adminurl,
-					region=region,
-					service_name=service_name,
-					check_mode=check_mode)
+	if endpoint.state == 'absent':
+		if endpoint.endpoint_exists():
+			if module.check_mode:
+				module.exit_json(changed=True)
+			endpoint.remove_endpoint()
+			changed = True
+	elif endpoint.state == 'present':
+		if not endpoint.endpoint_exists():
+			if module.check_mode:
+				module.exit_json(changed=True)
+			endpoint.create_endpoint()
+			changed = True
+			result['id'] = endpoint.id
 		else:
-			raise ValueError("Invalid state: %s" % state)
-	except Exception, e:
-		if check_mode:
-			module.exit_json(changed=True, msg="exception: %s" % e)
-		else:
-			module.fail_json(msg="exception: %s" % e)
-	else:
-		module.exit_json(changed=changed, id=id)
+			if endpoint.needs_update():
+				endpoint.update_endpoint()
+				changed = True
+				result['id'] = endpoint.id
 
-from ansible.module_utils.basic import *
-from ansible.module_utils.openstack import *
+	result['changed'] = changed
+
+	module.exit_json(**result)
 
 if __name__ == '__main__':
 	main()

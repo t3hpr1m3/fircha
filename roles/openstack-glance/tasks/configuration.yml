@@ -16,16 +16,16 @@
       value: "http://{{ openstack_keystone_hostname }}:35357"
     - section: keystone_authtoken
       option: memcached_servers
-      value: "localhost:11211"
+      value: "{{ openstack_glance_memcached_host }}"
     - section: keystone_authtoken
       option: auth_type
       value: password
     - section: keystone_authtoken
       option: project_domain_name
-      value: default
+      value: Default
     - section: keystone_authtoken
       option: user_domain_name
-      value: default
+      value: Default
     - section: keystone_authtoken
       option: project_name
       value: service
@@ -46,10 +46,12 @@
       value: file
     - section: glance_store
       option: filesystem_store_datadir
-      value: "/var/lib/glance/images"
+      value: "{{ openstack_glance_image_path }}"
+  changed_when: True
   notify:
     - restart glance-api
     - sync glance database
+  tags: glance,mysql
 
 - name: ensure glance registry is configured
   ini_file:
@@ -69,7 +71,7 @@
       value: "http://{{ openstack_keystone_hostname }}:35357"
     - section: keystone_authtoken
       option: memcached_servers
-      value: "localhost:11211"
+      value: "{{ openstack_glance_memcached_host }}"
     - section: keystone_authtoken
       option: auth_type
       value: password
@@ -93,3 +95,4 @@
       value: keystone
   notify:
     - restart glance-registry
+  tags: glance

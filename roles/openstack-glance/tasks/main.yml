@@ -1,6 +1,18 @@
 ---
+- name: ensure the glance database exists
+  mysql_db:
+    name: "{{ openstack_glance_database_name }}"
+  tags: mysql,glance
+
+- name: ensure the glance mysql user exists
+  mysql_user:
+    name: "{{ openstack_glance_database_username }}"
+    password: "{{ openstack_glance_database_password }}"
+    priv: "{{ openstack_glance_database_name }}.*:ALL,GRANT"
+    state: present
+  tags: mysql,glance
+
 - include: user.yml
-- include: user_role.yml
 - include: service.yml
 - include: endpoints.yml
 
@@ -8,7 +20,20 @@
   apt:
     name: glance
     state: present
+  tags: glance,packages
 
 - include: configuration.yml
 
 - meta: flush_handlers
+
+- name: ensure the glance-api is running
+  systemd:
+    name: glance-api
+    state: started
+  tags: glance
+
+- name: ensure the glance-registry is running
+  systemd:
+    name: glance-registry
+    state: started
+  tags: glance
