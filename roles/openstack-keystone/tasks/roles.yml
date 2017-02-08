@@ -1,8 +1,0 @@
----
-- name: ensure the user role exists
-  keystone_role:
-    name: user
-    auth_username: admin
-    auth_password: "{{ openstack_admin_password }}"
-    auth_url: "http://{{ openstack_keystone_hostname }}:35357/v3"
-  tags: keystone

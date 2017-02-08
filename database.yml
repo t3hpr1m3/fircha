@@ -3,6 +3,7 @@
   become: yes
   become_user: root
   roles:
-    - hostname
-    - ntp
-    - mysql
+    - role: hostname
+    - role: ntp
+    - role: mysql
+      root_password: "{{ mysql_root_password }}"

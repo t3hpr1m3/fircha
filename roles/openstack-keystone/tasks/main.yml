@@ -1,15 +1,20 @@
 ---
 - name: ensure the keystone database exists
   mysql_db:
-    name: "{{ openstack_keystone_database_name }}"
+    name: "{{ database_name }}"
+  become: yes
+  become_user: root
+  delegate_to: "{{ database_host }}"
   tags: mysql,keystone
 
 - name: ensure the keystone mysql user exists
   mysql_user:
-    name: "{{ openstack_keystone_database_username }}"
-    password: "{{ openstack_keystone_database_password }}"
-    priv: "{{ openstack_keystone_database_name }}.*:ALL,GRANT"
+    name: "{{ database_username }}"
+    host: "{{ ansible_hostname }}"
+    password: "{{ database_password }}"
+    priv: "{{ database_name }}.*:ALL,GRANT"
     state: present
+  delegate_to: "{{ database_host }}"
   tags: mysql,keystone
 
 - name: ensure the keystone package is installed
@@ -37,10 +42,10 @@
 - name: ensure keystone is bootstrapped
   command: |
     keystone-manage bootstrap \
-    --bootstrap-password {{ openstack_admin_password }} \
-    --bootstrap-admin-url http://{{ openstack_keystone_hostname }}:35357/v3/ \
-    --bootstrap-internal-url http://{{ openstack_keystone_hostname }}:35357/v3/ \
-    --bootstrap-public-url http://{{ openstack_keystone_hostname }}:5000/v3/ \
+    --bootstrap-password {{ admin_password }} \
+    --bootstrap-admin-url http://{{ ansible_hostname }}:35357/v3/ \
+    --bootstrap-internal-url http://{{ ansible_hostname }}:35357/v3/ \
+    --bootstrap-public-url http://{{ ansible_hostname }}:5000/v3/ \
     --bootstrap-region-id RegionOne
   changed_when: false
   register: add_service
@@ -48,7 +53,38 @@
   retries: 5
   delay: 10
 
-- include: projects.yml
-- include: users.yml
-- include: roles.yml
-- include: user_roles.yml
+- name: ensure the required projects exist in keystone
+  keystone_project:
+    name: "{{ item.name }}"
+    description: "{{ item.description }}"
+    domain: Default
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://localhost:35357/v3"
+  with_items:
+    - name: service
+      description: Service Project
+    - name: demo
+      description: Demo Project
+  tags: keystone
+
+- name: ensure the user role exists
+  keystone_role:
+    name: user
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: http://localhost:35357/v3
+  tags: keystone
+
+- name: ensure the required users exist in keystone
+  keystone_user:
+    name: demo
+    domain: Default
+    password: "{{ demo_password }}"
+    roles:
+      - user
+    update_password: on_create
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://localhost:35357/v3"
+  tags: keystone

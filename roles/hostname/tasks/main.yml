@@ -12,3 +12,10 @@
     group: root
     mode: 0645
   tags: hostname
+
+- name: ensure the stupid "localhost" doesn't exist
+  lineinfile:
+    regexp: '^127\.0\.1\.1'
+    state: absent
+    dest: /etc/hosts
+  tags: hostname

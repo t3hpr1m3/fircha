@@ -58,22 +58,28 @@ class User(object):
 			self.module.exit_json(failed=True, msg="%s" % e)
 
 	def _get_domain(self):
+		if self.domain is None:
+			return None
+
 		for entry in self.keystone.domains.list():
 			if entry.id == self.domain or entry.name == self.domain:
 				return entry
+		self.module.exit_json(failed=True, msg="Invalid domain: %s" %
+				self.domain)
 
 		return None
 
 	def _get_project(self):
-		domain = self._get_domain()
-		if domain is None:
+		if self.default_project is None:
 			return None
+
+		domain = self._get_domain()
 
 		for entry in self.keystone.projects.list(domain=domain):
 			if entry.id == self.default_project or entry.name == self.default_project:
 				return entry
 
-		return None
+		self.module.exit_json(failed=True, msg="Invalid default_project: %s" % self.default_project)
 
 	def _get_user_roles(self):
 		roles = []
@@ -103,7 +109,9 @@ class User(object):
 	def _add_user_role(self, role):
 		role = self._get_role(role)
 		project = self._get_project()
-		self.keystone.roles.grant(role, user=self.user, project=project)
+		domain = self._get_domain()
+		self.keystone.roles.grant(role, user=self.user,
+				project=project, domain=domain)
 
 	def _remove_user_role(self, role):
 		role = self._get_role(role)
@@ -112,16 +120,11 @@ class User(object):
 
 
 	def _get_user(self):
-		project = self._get_project()
-		if project is None:
-			return None
-
 		domain = self._get_domain()
 		if domain is None:
 			return None
 
-		for entry in self.keystone.users.list(default_project=project,
-				domain=domain):
+		for entry in self.keystone.users.list(domain=domain):
 			if entry.name == self.name:
 				self.user = entry
 				return entry
@@ -137,18 +140,16 @@ class User(object):
 	def create_user(self):
 		self._authenticate()
 		project = self._get_project()
-		if project is None:
-			self.module.fail_json(msg="Invalid project: %s" %
-					self.default_project)
 
 		domain = self._get_domain()
 		if domain is None:
 			self.module.fail_json(msg="Invalid domain: %s" %
 					self.domain)
 
-		ks_user = self.keystone.users.create(name=self.name,
+		ks_user = self.keystone.users.create(self.name,
 				domain=domain, password=self.password,
-				email=self.email, description=self.description,
+				email=self.email,
+				description=self.description,
 				enabled=self.enabled, default_project=project)
 		self.user = ks_user
 		self.id = self.user.id
@@ -161,9 +162,7 @@ class User(object):
 	def needs_update(self):
 		self._authenticate()
 		project = self._get_project()
-		if project is None:
-			self.module.fail_json(msg="Invalid project: %s" %
-					self.default_project)
+
 		user = self._get_user()
 		if user is None:
 			return False
@@ -199,9 +198,6 @@ class User(object):
 	def update_user(self):
 		self._authenticate()
 		project = self._get_project()
-		if project is None:
-			self.module.fail_json(msg="Invalid project: %s" %
-					self.project)
 
 		user = self._get_user()
 		if user is None:
@@ -247,7 +243,7 @@ def main():
 			email=dict(required=False, type='str'),
 			description=dict(required=False, type='str'),
 			enabled=dict(required=False, default=True, type='bool'),
-			default_project=dict(required=True, type='str'),
+			default_project=dict(required=False, type='str'),
 			roles=dict(default=None, type='list'),
 			update_password=dict(default='always',
 				choices=['always', 'on_create'], type='str'),

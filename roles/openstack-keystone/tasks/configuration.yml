@@ -8,7 +8,7 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ openstack_keystone_database_url }}"
+      value: "{{ database_url }}"
   notify:
     - restart apache2
     - sync keystone database
@@ -22,7 +22,7 @@
   with_items:
     - section: memcache
       option: servers
-      value: "{{ openstack_keystone_memcached_host }}:11211"
+      value: "{{ memcached_host }}"
   notify:
     - restart apache2
 

@@ -1,2 +1,2 @@
 ---
-mysql_root_password: iamveryinsecure
+root_password: iamveryinsecure
