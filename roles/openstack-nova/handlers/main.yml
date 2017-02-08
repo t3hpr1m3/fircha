@@ -1,11 +1,11 @@
 ---
-- name: sync nova database
-  command: nova-manage db sync
+- name: sync nova-api database
+  command: nova-manage api_db sync
   become: yes
   become_user: nova
 
-- name: sync nova-api database
-  command: nova-manage api_db sync
+- name: sync nova database
+  command: nova-manage db sync
   become: yes
   become_user: nova
 

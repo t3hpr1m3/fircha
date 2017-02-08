@@ -27,7 +27,6 @@ class User(object):
 		self.enabled         = module.params['enabled']
 		self.default_project = module.params['default_project']
 		self.update_password = module.params['update_password']
-		self.roles           = module.params['roles']
 		self.state           = module.params['state']
 		self.keystone        = None
 		self.service         = None
@@ -81,47 +80,6 @@ class User(object):
 
 		self.module.exit_json(failed=True, msg="Invalid default_project: %s" % self.default_project)
 
-	def _get_user_roles(self):
-		roles = []
-		for entry in self.keystone.role_assignments.list(user=self.user):
-			roles.append(self.keystone.roles.get(entry.role['id']))
-
-		return roles
-
-	def _get_role(self, role):
-		domain = self._get_domain()
-
-		for entry in self.keystone.roles.list(domain=domain):
-			if entry.name == role:
-				return entry
-
-		self.module.fail_json(msg="Invalid role: %s" % role)
-
-	def _user_has_role(self, role):
-		role = self._get_role(role)
-		user_roles = self._get_user_roles()
-		for r in user_roles:
-			if r == role:
-				return True
-
-		return False
-
-	def _add_user_role(self, role):
-		role = self._get_role(role)
-		project = self._get_project()
-		domain = self._get_domain()
-		if domain is not None:
-			self.keystone.roles.grant(role, user=self.user,
-					domain=domain)
-		else:
-			self.keystone.roles.grant(role, user=self.user,
-					project=project)
-
-	def _remove_user_role(self, role):
-		role = self._get_role(role)
-		self.keystone.roles.revoke(role, user=self.user,
-				domain=self.domain)
-
 
 	def _get_user(self):
 		domain = self._get_domain()
@@ -158,11 +116,6 @@ class User(object):
 		self.user = ks_user
 		self.id = self.user.id
 
-		if self.roles:
-			for role in self.roles:
-				if not self._user_has_role(role):
-					self._add_user_role(role)
-
 	def needs_update(self):
 		self._authenticate()
 		project = self._get_project()
@@ -175,26 +128,6 @@ class User(object):
 			return True
 
 		if self.update_password == 'always':
-			return True
-
-		desired_roles = []
-		if self.roles:
-			for role in self.roles:
-				desired_roles.append(self._get_role(role))
-		actual_roles = self._get_user_roles()
-
-		delete_roles = []
-		add_roles = []
-		for role in actual_roles:
-			if role not in desired_roles:
-				delete_roles.append(role)
-		for role in desired_roles:
-			if role not in actual_roles:
-				add_roles.append(role)
-
-		if delete_roles:
-			return True
-		if add_roles:
 			return True
 
 		return False
@@ -218,19 +151,6 @@ class User(object):
 			self.user = ks_user
 			self.id = self.user.id
 
-		desired_roles = []
-		if self.roles:
-			for role in self.roles:
-				desired_roles.append(self._get_role(role))
-		actual_roles = self._get_user_roles()
-
-		for role in actual_roles:
-			if role not in desired_roles:
-				self._remove_user_role(role.name)
-		for role in desired_roles:
-			if role not in actual_roles:
-				self._add_user_role(role.name)
-
 	def remove_user(self):
 		self._authenticate()
 		user = self._get_user()
@@ -248,7 +168,6 @@ def main():
 			description=dict(required=False, type='str'),
 			enabled=dict(required=False, default=True, type='bool'),
 			default_project=dict(required=False, type='str'),
-			roles=dict(default=None, type='list'),
 			update_password=dict(default='always',
 				choices=['always', 'on_create'], type='str'),
 			state=dict(default='present', choices=['present',

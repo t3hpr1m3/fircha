@@ -68,6 +68,17 @@
       description: Demo Project
   tags: keystone
 
+- name: ensure the required users exist in keystone
+  keystone_user:
+    name: demo
+    domain: Default
+    password: "{{ demo_password }}"
+    update_password: on_create
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://localhost:35357/v3"
+  tags: keystone
+
 - name: ensure the user role exists
   keystone_role:
     name: user
@@ -76,15 +87,13 @@
     auth_url: http://localhost:35357/v3
   tags: keystone
 
-- name: ensure the required users exist in keystone
-  keystone_user:
-    name: demo
-    domain: Default
-    password: "{{ demo_password }}"
-    roles:
-      - user
-    update_password: on_create
+- name: ensure users have the necessary roles
+  keystone_user_role:
+    user: demo
+    role: user
+    project: demo
     auth_username: admin
     auth_password: "{{ admin_password }}"
-    auth_url: "http://localhost:35357/v3"
+    auth_url: http://localhost:35357/v3
   tags: keystone
+

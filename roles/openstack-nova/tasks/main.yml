@@ -1,8 +1,75 @@
 ---
-- include: user.yml
-- include: user_role.yml
-- include: service.yml
-- include: endpoints.yml
+- name: ensure the nova databases exists
+  mysql_db:
+    name: "{{ item }}"
+  delegate_to: "{{ database_host }}"
+  with_items:
+    - "{{ database_name }}"
+    - "{{ api_database_name }}"
+  tags: nova,mysql
+
+- name: ensure the nova mysql user exists
+  mysql_user:
+    name: "{{ database_username }}"
+    password: "{{ database_password }}"
+    priv: "{{ item }}.*:ALL,GRANT"
+    host: "{{ ansible_hostname }}"
+    append_privs: yes
+    state: present
+  delegate_to: "{{ database_host }}"
+  with_items:
+    - "{{ database_name }}"
+    - "{{ api_database_name }}"
+  tags: nova,mysql
+
+- name: ensure the nova user exists in keystone
+  keystone_user:
+    name: "{{ service_username }}"
+    domain: default
+    password: "{{ service_password }}"
+    default_project: service
+    update_password: on_create
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: nova,keystone
+
+- name: ensure the nova user has the admin role in the service project
+  keystone_user_role:
+    user: "{{ service_username }}"
+    role: admin
+    project: service
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: nova,keystone
+
+- name: ensure the nova service exists in keystone
+  keystone_service:
+    name: "{{ service_name }}"
+    description: "{{ service_description }}"
+    type: compute
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: nova,keystone
+
+- name: ensure the nova endpoints exist in keystone
+  keystone_endpoint:
+    url: "{{ item.url }}"
+    interface: "{{ item.interface }}"
+    service: "{{ service_name }}"
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  with_items:
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:8774/v2.1/%(tenant_id)s"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:8774/v2.1/%(tenant_id)s"
+    - interface: public
+      url: "http://{{ ansible_hostname }}:8774/v2.1/%(tenant_id)s"
+  tags: nova,keystone
 
 - name: ensure the nova packages are installed
   apt:
@@ -15,12 +82,13 @@
     - nova-consoleauth
     - nova-novncproxy
     - nova-scheduler
+  tags: nova
 
-- name: ensure the nova volume group exists
-  lvg:
-    vg: nova-volumes
-    pvs: "{{ openstack_nova_volume_members }}"
-    state: present
+# - name: ensure the nova volume group exists
+#   lvg:
+#     vg: nova-volumes
+#     pvs: "{{ openstack_nova_volume_members }}"
+#     state: present
 
 - include: configuration.yml
 

@@ -1,0 +1,4 @@
+---
+database_url: "mysql+pymysql://{{ database_username }}:{{ database_password }}@{{ database_host }}/{{ database_name }}"
+api_database_url: "mysql+pymysql://{{ database_username }}:{{ database_password }}@{{ database_host }}/{{ api_database_name }}"
+rabbitmq_url: "rabbit://{{ rabbitmq_username }}:{{ rabbitmq_password }}@{{ rabbitmq_hostname }}"
