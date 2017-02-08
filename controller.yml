@@ -12,11 +12,13 @@
       service_password: "{{ keystone_password }}"
       database_host: "{{ groups['database'][0] }}"
       database_password: "{{ keystone_mysql_password }}"
-    # - role: openstack-glance
-    #   database_host: "{{ groups['database'][0] }}"
-    #   database_password: "{{ glance_mysql_password }}"
-    #   memcached_host: "{{ groups['memcached'][0] }}:11211"
-    #   keystone_hostname: "{{ groups['controller'][0] }}"
+    - role: openstack-glance
+      admin_password: "{{ admin_user_password }}"
+      memcached_host: "{{ groups['memcached'][0] }}:11211"
+      database_host: "{{ groups['database'][0] }}"
+      database_password: "{{ glance_mysql_password }}"
+      keystone_hostname: "{{ groups['controller'][0] }}"
+      service_password: "{{ glance_password }}"
     # - role: openstack-nova
     #   openstack_nova_database_name: "nova"
     #   openstack_nova_database_url: "mysql+pymysql://{{ openstack_nova_database_username }}:{{ openstack_nova_database_password }}@{{ /{{ mysql_nova_database }}"

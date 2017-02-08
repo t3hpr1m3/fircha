@@ -110,8 +110,12 @@ class User(object):
 		role = self._get_role(role)
 		project = self._get_project()
 		domain = self._get_domain()
-		self.keystone.roles.grant(role, user=self.user,
-				project=project, domain=domain)
+		if domain is not None:
+			self.keystone.roles.grant(role, user=self.user,
+					domain=domain)
+		else:
+			self.keystone.roles.grant(role, user=self.user,
+					project=project)
 
 	def _remove_user_role(self, role):
 		role = self._get_role(role)

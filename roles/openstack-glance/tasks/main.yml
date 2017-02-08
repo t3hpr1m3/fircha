@@ -1,26 +1,66 @@
 ---
 - name: ensure the glance database exists
   mysql_db:
-    name: "{{ openstack_glance_database_name }}"
-  tags: mysql,glance
+    name: "{{ database_name }}"
+  delegate_to: "{{ database_host }}"
+  tags: glance,mysql
 
 - name: ensure the glance mysql user exists
   mysql_user:
-    name: "{{ openstack_glance_database_username }}"
-    password: "{{ openstack_glance_database_password }}"
-    priv: "{{ openstack_glance_database_name }}.*:ALL,GRANT"
+    name: "{{ database_username }}"
+    password: "{{ database_password }}"
+    priv: "{{ database_name }}.*:ALL,GRANT"
+    host: "{{ ansible_hostname }}"
     state: present
-  tags: mysql,glance
+  delegate_to: "{{ database_host }}"
+  tags: glance,mysql
 
-- include: user.yml
-- include: service.yml
-- include: endpoints.yml
+- name: ensure the glance user exists in keystone
+  keystone_user:
+    name: "{{ service_username }}"
+    domain: default
+    password: "{{ service_password }}"
+    default_project: service
+    update_password: on_create
+    roles:
+      - admin
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: glance,keystone
+
+- name: ensure the glance service exists in keystone
+  keystone_service:
+    name: "{{ service_name }}"
+    description: "{{ service_description }}"
+    type: image
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  tags: glance,keystone
+
+- name: ensure the glance endpoints exist in keystone
+  keystone_endpoint:
+    url: "{{ item.url }}"
+    interface: "{{ item.interface }}"
+    service: "{{ service_name }}"
+    auth_username: admin
+    auth_password: "{{ admin_password }}"
+    auth_url: "http://{{ keystone_hostname }}:35357/v3"
+  with_items:
+    - interface: admin
+      url: "http://{{ ansible_hostname }}:9292"
+    - interface: internal
+      url: "http://{{ ansible_hostname }}:9292"
+    - interface: public
+      url: "http://{{ ansible_hostname }}:9292"
+  tags: glance,keystone
 
 - name: ensure the glance packages are installed
   apt:
     name: glance
     state: present
-  tags: glance,packages
+  tags: glance
 
 - include: configuration.yml
 

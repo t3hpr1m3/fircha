@@ -1,16 +1,20 @@
 ---
-openstack_admin_password: CHANGEME
-openstack_glance_database_url: sqlite:////var/lib/glance/glance.db
-openstack_glance_service_name: glance
-openstack_glance_service_description: OpenStack Image Service
-openstack_glance_username: glance
-openstack_glance_password: iamnotverysecret
-openstack_glance_hostname: localhost
-openstack_glance_image_path: /var/lib/glance/images
-openstack_glance_memcached_host: localhost:11211
-openstack_keystone_hostname: localhost
+admin_password: CHANGEME
 
-openstack_glance_database_host: localhost
-openstack_glance_database_name: glance
-openstack_glance_database_username: glance
-openstack_glance_database_password: CHANGEME
+memcached_host: localhost:11211
+
+service_name: glance
+service_description: OpenStack Image Service
+service_username: glance
+service_password: CHANGEME
+
+image_path: /var/lib/glance/images
+
+log_dir: /var/log/glance
+
+keystone_hostname: localhost
+
+database_host: localhost
+database_name: glance
+database_username: glance
+database_password: CHANGEME

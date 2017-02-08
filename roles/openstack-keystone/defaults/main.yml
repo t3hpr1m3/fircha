@@ -6,8 +6,6 @@ memcached_host: localhost:11211
 
 service_name: keystone
 service_description: OpenStack Identity
-service_user: keystone
-service_password: CHANGEME
 
 log_dir: /var/log/keystone
 

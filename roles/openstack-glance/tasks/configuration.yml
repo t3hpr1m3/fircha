@@ -7,16 +7,16 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ openstack_glance_database_url }}"
+      value: "{{ database_url }}"
     - section: keystone_authtoken
       option: auth_uri
-      value: "http://{{ openstack_keystone_hostname }}:5000"
+      value: "http://{{ keystone_hostname }}:5000"
     - section: keystone_authtoken
       option: auth_url
-      value: "http://{{ openstack_keystone_hostname }}:35357"
+      value: "http://{{ keystone_hostname }}:35357"
     - section: keystone_authtoken
       option: memcached_servers
-      value: "{{ openstack_glance_memcached_host }}"
+      value: "{{ memcached_host }}"
     - section: keystone_authtoken
       option: auth_type
       value: password
@@ -31,10 +31,10 @@
       value: service
     - section: keystone_authtoken
       option: username
-      value: "{{ openstack_glance_username }}"
+      value: "{{ service_username }}"
     - section: keystone_authtoken
       option: password
-      value: "{{ openstack_glance_password }}"
+      value: "{{ service_password }}"
     - section: paste_deploy
       option: flavor
       value: keystone
@@ -46,8 +46,7 @@
       value: file
     - section: glance_store
       option: filesystem_store_datadir
-      value: "{{ openstack_glance_image_path }}"
-  changed_when: True
+      value: "{{ image_path }}"
   notify:
     - restart glance-api
     - sync glance database
@@ -62,16 +61,16 @@
   with_items:
     - section: database
       option: connection
-      value: "{{ openstack_glance_database_url }}"
+      value: "{{ database_url }}"
     - section: keystone_authtoken
       option: auth_uri
-      value: "http://{{ openstack_keystone_hostname }}:5000"
+      value: "http://{{ keystone_hostname }}:5000"
     - section: keystone_authtoken
       option: auth_url
-      value: "http://{{ openstack_keystone_hostname }}:35357"
+      value: "http://{{ keystone_hostname }}:35357"
     - section: keystone_authtoken
       option: memcached_servers
-      value: "{{ openstack_glance_memcached_host }}"
+      value: "{{ memcached_host }}"
     - section: keystone_authtoken
       option: auth_type
       value: password
@@ -86,10 +85,10 @@
       value: service
     - section: keystone_authtoken
       option: username
-      value: "{{ openstack_glance_username }}"
+      value: "{{ service_username }}"
     - section: keystone_authtoken
       option: password
-      value: "{{ openstack_glance_password }}"
+      value: "{{ service_password }}"
     - section: paste_deploy
       option: flavor
       value: keystone
